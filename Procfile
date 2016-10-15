@@ -1,1 +1,1 @@
-web: node app.js
+web: npm install && npm run typings install && npm start
