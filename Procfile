@@ -1,1 +1,1 @@
-web: npm install && npm run typings install && npm start
+web: npm run lite
