@@ -1,1 +1,1 @@
-web: npm run lite
+web: npm start
