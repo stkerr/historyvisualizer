@@ -23,13 +23,9 @@ app.get('/people/:personId', function (req, res){
         // console.log(result)
         // console.log(result.records);
         var results = result.records[0].get("a");
-        // console.log(results)
-        // console.log("Name: " + results.properties.name);
-        // console.log("Gender: " + results.properties.gender);
-        // console.log("House: " + results.properties.house);
 
-        res.write("<div>Name: " + results.properties.name + "</div>" +
-        "<div>Gender: " + results.properties.gender + "</div>" +
+        res.write("<div><h1>" + results.properties.name + "</h1></div>" +
+        "<div>"+ results.properties.born + "-" + results.properties.died + "</div>" +
         "<div>House: " + results.properties.house + "</div>");
       })
       .then(function(){
@@ -52,7 +48,7 @@ app.get('/people/:personId', function (req, res){
                     onNext: function(record) {
                         console.log("Got a child!");
                         console.log(record.get("x").properties.name);
-                        res.write("<div><a href="+record.get("x").properties.personId+">"+record.get("x").properties.name+"</a></div>")
+                        res.write("<div><a href="+record.get("x").properties.personId+">"+record.get("x").properties.name+" ("+record.get("x").properties.born+"-"+record.get("x").properties.died+")</a></div>")
                     },
                     onCompleted: function() {
                         console.log("Done.");
