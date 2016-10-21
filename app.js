@@ -10,9 +10,7 @@ app.get('/people/:personId', function (req, res){
     var neo4j = require('neo4j-driver').v1;
 
     var driver = neo4j.driver(process.env.GRAPHENEDB_BOLT_URL, neo4j.auth.basic(process.env.GRAPHENEDB_BOLT_USER, process.env.GRAPHENEDB_BOLT_PASSWORD));
-    console.log("I'm about to do something...");
     var session = driver.session();
-    console.log("I got a session...");
     session
       .run( "MATCH(a:PERSON {personId:" + req.params.personId + "}) RETURN a" )
       .then( function(result){
@@ -20,8 +18,6 @@ app.get('/people/:personId', function (req, res){
         return result;
       })
       .then( function( result ) {
-        // console.log(result)
-        // console.log(result.records);
         var results = result.records[0].get("a");
 
         res.write("<div><h1>" + results.properties.name + "</h1></div>" +
@@ -45,11 +41,9 @@ app.get('/people/:personId', function (req, res){
                   .run("MATCH (a:PERSON {personId:" + req.params.personId + "})-[r:MARRIED]-(x) RETURN x,r" )
                   .subscribe({
                     onNext: function(record) {
-                        console.log(record.get("x").properties.name);
                         res.write("<div><a href="+record.get("x").properties.personId+">"+record.get("x").properties.name+" ("+record.get("x").properties.born+"-"+record.get("x").properties.died+")</a> Married in " + record.get("r").properties.start_date + "</div>")
                     },
                     onCompleted: function() {
-                        console.log("Done.");
                         res.write("</div>");
 
 
@@ -59,8 +53,6 @@ app.get('/people/:personId', function (req, res){
                           .run("MATCH (a:PERSON {personId:" + req.params.personId + "})-[r:PARENT_OF]->(x) RETURN x" )
                           .subscribe({
                             onNext: function(record) {
-                                console.log("Got a child!");
-                                console.log(record.get("x").properties.name);
                                 res.write("<div><a href="+record.get("x").properties.personId+">"+record.get("x").properties.name+" ("+record.get("x").properties.born+"-"+record.get("x").properties.died+")</a></div>")
                             },
                             onCompleted: function() {
