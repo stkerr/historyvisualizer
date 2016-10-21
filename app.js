@@ -40,26 +40,41 @@ app.get('/people/:personId', function (req, res){
             onCompleted: function() {
                 res.write("</div>");
 
-                res.write("<div><h1>Children</h1>");
-
+                res.write("<div><h1>Spouse(s)</h1>");
                 session
-                  .run("MATCH (a:PERSON {personId:" + req.params.personId + "})-[r:PARENT_OF]->(x) RETURN x" )
+                  .run("MATCH (a:PERSON {personId:" + req.params.personId + "})-[r:MARRIED]-(x) RETURN x,r" )
                   .subscribe({
                     onNext: function(record) {
-                        console.log("Got a child!");
                         console.log(record.get("x").properties.name);
-                        res.write("<div><a href="+record.get("x").properties.personId+">"+record.get("x").properties.name+" ("+record.get("x").properties.born+"-"+record.get("x").properties.died+")</a></div>")
+                        res.write("<div><a href="+record.get("x").properties.personId+">"+record.get("x").properties.name+" ("+record.get("x").properties.born+"-"+record.get("x").properties.died+")</a> Married in " + record.get("r").properties.start_date + "</div>")
                     },
                     onCompleted: function() {
                         console.log("Done.");
                         res.write("</div>");
-                        res.end();
+
+
+                        res.write("<div><h1>Children</h1>");
+
+                        session
+                          .run("MATCH (a:PERSON {personId:" + req.params.personId + "})-[r:PARENT_OF]->(x) RETURN x" )
+                          .subscribe({
+                            onNext: function(record) {
+                                console.log("Got a child!");
+                                console.log(record.get("x").properties.name);
+                                res.write("<div><a href="+record.get("x").properties.personId+">"+record.get("x").properties.name+" ("+record.get("x").properties.born+"-"+record.get("x").properties.died+")</a></div>")
+                            },
+                            onCompleted: function() {
+                                console.log("Done.");
+                                res.write("</div>");
+                                res.end();
+                            }
+                          })
                     }
-                  })
-                }
-            })
-      });
-  });
+                })
+            }
+        })
+    })
+});
 
 app.listen(port, function () {
   console.log('Example app listening on port ' + port + '!');
