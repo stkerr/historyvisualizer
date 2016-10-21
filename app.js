@@ -6,6 +6,65 @@ app.get('/', function (req, res) {
   res.send('Hello World!');
 });
 
+app.get('/people/:personId', function (req, res){
+    var neo4j = require('neo4j-driver').v1;
+
+    var driver = neo4j.driver(process.env.GRAPHENEDB_BOLT_URL, neo4j.auth.basic(process.env.GRAPHENEDB_BOLT_USER, process.env.GRAPHENEDB_BOLT_PASSWORD));
+    console.log("I'm about to do something...");
+    var session = driver.session();
+    console.log("I got a session...");
+    session
+      .run( "MATCH(a:PERSON {personId:" + req.params.personId + "}) RETURN a" )
+      .then( function(result){
+        res.write("<html><body>");
+        return result;
+      })
+      .then( function( result ) {
+        // console.log(result)
+        // console.log(result.records);
+        var results = result.records[0].get("a");
+        // console.log(results)
+        // console.log("Name: " + results.properties.name);
+        // console.log("Gender: " + results.properties.gender);
+        // console.log("House: " + results.properties.house);
+
+        res.write("<div>Name: " + results.properties.name + "</div>" +
+        "<div>Gender: " + results.properties.gender + "</div>" +
+        "<div>House: " + results.properties.house + "</div>");
+      })
+      .then(function(){
+        res.write("<div><h1>Parents</h1>");
+
+        session
+          .run("MATCH (x)-[r:PARENT_OF]->(a:PERSON {personId:" + req.params.personId + "}) RETURN x" )
+          .subscribe({
+            onNext: function(record) {
+                res.write("<div><a href="+record.get("x").properties.personId+">"+record.get("x").properties.name+"</a></div>")
+            },
+            onCompleted: function() {
+                res.write("</div>");
+
+                res.write("<div><h1>Children</h1>");
+
+                session
+                  .run("MATCH (a:PERSON {personId:" + req.params.personId + "})-[r:PARENT_OF]->(x) RETURN x" )
+                  .subscribe({
+                    onNext: function(record) {
+                        console.log("Got a child!");
+                        console.log(record.get("x").properties.name);
+                        res.write("<div><a href="+record.get("x").properties.personId+">"+record.get("x").properties.name+"</a></div>")
+                    },
+                    onCompleted: function() {
+                        console.log("Done.");
+                        res.write("</div>");
+                        res.end();
+                    }
+                  })
+                }
+            })
+      });
+  });
+
 app.listen(port, function () {
   console.log('Example app listening on port ' + port + '!');
 });
